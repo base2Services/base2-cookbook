@@ -8,5 +8,5 @@
 #
 
 default['system']['timezone'] = "Australia/Melbourne"
-default['common']['packages'] = ['telnet', 'mc', 'screen', 'sysstat','aws-amitools-ec2','aws-apitools-common','aws-cfn-bootstrap','cloud-init' ]
+default['common']['packages'] = ['telnet', 'mc', 'screen', 'sysstat','traceroute']
 default['common']['user'] = 'base2'
