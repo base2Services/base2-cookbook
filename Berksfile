@@ -6,6 +6,7 @@ cookbook 'timezone-ii', '~> 0.2.0'
 cookbook 'yum'
 cookbook 'apt'
 cookbook 'resource-control'
+cookbook 'build-essential'
 
 
 metadata
