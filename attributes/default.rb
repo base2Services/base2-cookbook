@@ -10,3 +10,4 @@
 default['system']['timezone'] = "Australia/Melbourne"
 default['common']['packages'] = ['telnet', 'mc', 'screen', 'sysstat','traceroute']
 default['common']['user'] = 'base2'
+
