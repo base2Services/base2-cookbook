@@ -4,7 +4,7 @@ pid_file=<%= node['base2']['nrpe']['pid'] %>
 server_port=5666
 nrpe_user=<%= node['base2']['nrpe']['user'] %>
 nrpe_group=<%= node['base2']['nrpe']['group'] %>
-allowed_hosts=<%= node['base2']['nrpe']['allowed_hosts'] %>
+allowed_hosts=<%= node['base2']['nrpe']['allowed_hosts'].join(",") %>
 
 dont_blame_nrpe=<%= node['base2']['nrpe']['dont_blame_nrpe'] %>
 allow_bash_command_substitution=<%= node['base2']['nrpe']['allow_bash_command_substitution'] %>
