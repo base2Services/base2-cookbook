@@ -56,3 +56,14 @@ default['base2']['nrpe']['allow_bash_command_substitution']=0
 default['base2']['nrpe']['debug']=0
 default['base2']['nrpe']['command_timeout'] = 60
 default['base2']['nrpe']['connection_timeout']=300
+
+#base checks
+#these will replace the basic config that gets provided as an exampel
+#add checks to this in your recipe if you like and call base2::nrpe_checks
+default['base2']['nrpe']['nrpe_checks'] = [
+  { "check_procs" => {"w"=>"400", "c"=>"500"}}, 
+  { "check_load" => { "w"=>"2", "c"=>"4"}}, 
+  { "check_swap" => { "w"=>"95%", "c"=>"85%"}}, 
+  { "check_ntp" => {"w"=>"1", "c"=>"10", "p"=>" -H localhost"}}, 
+  { "check_zombie_procs" => { "w"=>"1", "c"=>"10", "p"=>" -s Z", "script_name"=>"check_procs"}}
+]
