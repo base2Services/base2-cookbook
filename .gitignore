@@ -24,3 +24,6 @@ bin/*
 reports/
 
 .berkshelf/*
+
+cb_build.properties
+cookbooks.tar.gz
