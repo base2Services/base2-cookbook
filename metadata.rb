@@ -16,4 +16,4 @@ depends 'timezone-ii'
 depends 'apt'
 depends 'yum'
 depends 'resource-control'
-
+depends 'docker'

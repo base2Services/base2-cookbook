@@ -7,43 +7,45 @@
 # All rights reserved - Do Not Redistribute
 #
 
-base2_user_name = node['common']['user']
-base2_user_home_dir = "/home/#{base2_user_name}"
-base2_user_shell = '/bin/bash'
-base2_user_ssh_dir = "#{base2_user_home_dir}/.ssh"
+node['base2']['users'].each do |account, ssh_keys|
 
-# Create SOE user
-log "Creating the '#{base2_user_name}' user..."
-user "#{base2_user_name}" do
-  home "#{base2_user_home_dir}"
-  shell "#{base2_user_shell}"
-  supports :manage_home => true
-  action :create
-end
+  log "Creating the '#{account}' user..."
+  user "#{account}" do
+    shell '/bin/bash'
+    home "/home/#{account}"
+    supports :manage_home => true
+    action :create
+  end
 
-# SSH dir
-directory "#{base2_user_ssh_dir}" do
-  owner "#{base2_user_name}"
-  group "#{base2_user_name}"
-  mode 00700
-  action :create
-end
+  # SSH dir
+  directory "/home/#{account}/.ssh" do
+    owner account
+    group account
+    mode 00700
+    action :create
+  end
 
+  file "/home/#{account}/.ssh/authorized_keys" do
+    content "#generated and managed by chef\n"
+    owner account
+    group account
+    mode '0600'
+    action :create
+  end
 
-# Authorized keypairs configuration
-cookbook_file "#{base2_user_ssh_dir}/authorized_keys" do
-  source "home/#{base2_user_name}/.ssh/authorized_keys"
-  mode 00600
-  owner "#{base2_user_name}"
-  group "#{base2_user_name}"
-  action :create
-end
+  ssh_keys.each do |key|
+    execute 'append_authorized_keys' do
+      command "echo \"#{key}\" >> /home/#{account}/.ssh/authorized_keys"
+      action :run
+    end
+  end
 
-log "Creating the '#{base2_user_name}' sudoers partial..."
-cookbook_file "/etc/sudoers.d/#{base2_user_name}" do
-  source "etc/sudoers.d/#{base2_user_name}"
-  mode 00440
-  owner 'root'
-  group 'root'
-  action :create_if_missing
+  file "/etc/sudoers.d/#{account}" do
+    content "#{account} ALL = NOPASSWD: ALL"
+    owner 'root'
+    group 'root'
+    mode '0600'
+    action :create
+  end
+
 end
