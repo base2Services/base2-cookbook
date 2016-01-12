@@ -7,7 +7,6 @@ cookbook 'yum'
 cookbook 'apt'
 cookbook 'resource-control'
 cookbook 'build-essential'
-
+cookbook 'docker', '~> 2.4.1'
 
 metadata
-
