@@ -4,7 +4,9 @@ require 'jsonlint/rake_task'
 require 'rake/version_task'
 
 RSpec::Core::RakeTask.new(:spec)
-Rake::VersionTask.new
+Rake::VersionTask.new do |task|
+  task.with_git = false
+end
 task :default => ['test:run']
 
 # Tests/LINT
