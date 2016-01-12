@@ -1,7 +1,7 @@
 require 'rspec/core/rake_task'
 
 desc "Run all tests"
-task :test => :spec
+task :test => :test_rspec
 
 RSpec::Core::RakeTask.new(:test_rspec) do |t|
   t.rspec_opts = [].tap do |a|
