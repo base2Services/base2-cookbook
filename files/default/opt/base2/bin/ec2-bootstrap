@@ -1,0 +1,61 @@
+#!/bin/bash
+
+INSTANCE_ID=`curl http://169.254.169.254/2014-11-05/meta-data/instance-id -s`
+
+
+if [ "x$1" == x ]; then
+  AWS_REGION="ap-southeast-2"
+else
+  AWS_REGION="$1"
+fi
+
+if [ ! "x$2" == x ]; then
+  AWS_ACCOUNT_ID="$2"
+fi
+
+function get_tag {
+    tag="`aws ec2 describe-tags --region ${AWS_REGION} --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$1" --output=text | cut -f5`"
+    echo "$tag"
+}
+
+export EC2_TAG_ENVIRONMENT="`get_tag 'Environment'`"
+export EC2_TAG_ENVIRONMENT_TYPE="`get_tag 'EnvironmentType'`"
+export EC2_TAG_ROLE="`get_tag 'Role'`"
+export EC2_AZ="`curl http://169.254.169.254/2014-11-05/meta-data/placement/availability-zone -s | rev | cut -c1`"
+export AWS_REGION=$AWS_REGION
+export DATA_VOLUME_ID=$DATA_VOLUME_ID
+export INSTANCE_ID=$INSTANCE_ID
+export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
+
+if [ -f /etc/profile.d/bootstrap_env.sh ]; then
+  source /etc/profile.d/bootstrap_env.sh
+fi
+
+cat <<EOT > /etc/chef/override.json
+{
+  "base2": {
+    "aws_account_id":"$AWS_ACCOUNT_ID",
+    "role": "$EC2_TAG_ROLE",
+    "region": "$AWS_REGION",
+    "az": "$EC2_AZ",
+    "build_no": "${APP_BUILD_NO}",
+    "build_sha": "${APP_BUILD_SHA}",
+    "environment": {
+      "type": "$EC2_TAG_ENVIRONMENT_TYPE"
+    },
+    "ec2": {
+      "instance-id": "$INSTANCE_ID"
+    }
+  }
+}
+EOT
+
+echo "Executing bootstrap for $EC2_TAG_ROLE for environment $EC2_TAG_ENVIRONMENT"
+
+CLI_OPTS = ""
+if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}" ]];
+  CLI_OPTS = "-E ${EC2_TAG_ENVIRONMENT}"
+fi
+
+cd /etc/chef
+/opt/chef/bin/chef-client --local-mode $CLI_OPTS -j /etc/chef/override.json -o 'recipe[base2::bootstrap]'
