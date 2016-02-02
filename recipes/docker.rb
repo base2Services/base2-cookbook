@@ -35,7 +35,7 @@ end
 node['base2']['docker']['images'].each do |image|
 
   execute 'download_docker_images_from_s3' do
-    command "aws --region #{image['region']} s3 cp s3://#{image['bucket']}/containers/#{image['name']}/#{image['tag']}/#{image['name']}.tar /tmp/containers/#{image['name']}-#{image['tag']}.tar"
+    command "aws --region #{image['region']} s3 cp s3://#{image['bucket']}/containers/#{image['repo']}/#{image['name']}/#{image['tag']}/#{image['name']}.tar /tmp/containers/#{image['name']}-#{image['tag']}.tar"
     action :run
   end
 
