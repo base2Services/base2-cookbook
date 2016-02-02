@@ -52,10 +52,10 @@ EOT
 
 echo "Executing bootstrap for $EC2_TAG_ROLE for environment $EC2_TAG_ENVIRONMENT"
 
-CLI_OPTS = ""
-if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}" ]];
-  CLI_OPTS = "-E ${EC2_TAG_ENVIRONMENT}"
+CLI_OPTS=""
+if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}" ]]; then
+  CLI_OPTS="-E ${EC2_TAG_ENVIRONMENT}"
 fi
 
 cd /etc/chef
-/opt/chef/bin/chef-client --local-mode $CLI_OPTS -j /etc/chef/override.json -o 'recipe[base2::bootstrap]'
+/opt/chef/bin/chef-client --local-mode $CLI_OPTS -j /etc/chef/override.json -o "recipe[$EC2_TAG_ROLE]"
