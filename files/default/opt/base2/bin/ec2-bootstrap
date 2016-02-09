@@ -41,6 +41,7 @@ cat <<EOT > /etc/chef/override.json
     "build_no": "${APP_BUILD_NO}",
     "build_sha": "${APP_BUILD_SHA}",
     "environment": {
+      "name": "$EC2_TAG_ENVIRONMENT",
       "type": "$EC2_TAG_ENVIRONMENT_TYPE"
     },
     "ec2": {
@@ -53,6 +54,10 @@ EOT
 echo "Executing bootstrap for $EC2_TAG_ROLE for environment $EC2_TAG_ENVIRONMENT"
 
 CLI_OPTS=""
+if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT_TYPE}" ]]; then
+  CLI_OPTS="-E ${EC2_TAG_ENVIRONMENT_TYPE}"
+fi
+
 if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}" ]]; then
   CLI_OPTS="-E ${EC2_TAG_ENVIRONMENT}"
 fi
