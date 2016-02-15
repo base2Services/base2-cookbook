@@ -11,7 +11,7 @@ base2_opt_dir = '/opt/base2'
 base2_opt_dir_extras = ["archive", "backups", "config", "bin", "scripts"]
 
 # Base optional directory
-directory "#{base2_opt_dir}" do
+directory base2_opt_dir do
   mode 00755
   owner 'root'
   group 'root'
