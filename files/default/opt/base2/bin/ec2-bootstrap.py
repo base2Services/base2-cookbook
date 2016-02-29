@@ -61,7 +61,6 @@ cat <<EOT > /etc/chef/override.json
   "{application_name}": {{
     "aws_account_id":"{account_id}",
     "role": "{ec2_role}",
-    "current_tier": "{ec2_tier}",
     "region": "{region}",
     "az": "{az_char}",
     "build_no": "{app_build_no}",
@@ -82,6 +81,6 @@ os.system(chef_json)
 print "#Executing bootstrap for {ec2_role} for environment {ec2_environment}".format(**replacements)
 
 chef_cmd = """cd /etc/chef &&
-/opt/chef/bin/chef-client --local-mode -E {ec2_environment} -j /etc/chef/override.json -o 'recipe[surefire-runtime::default]'""".format(**replacements)
+/opt/chef/bin/chef-client --local-mode -E {ec2_environment} -j /etc/chef/override.json -o 'recipe[runtime::default]'""".format(**replacements)
 
 os.system(chef_cmd)
