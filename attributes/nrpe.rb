@@ -16,6 +16,8 @@ default['base2']['nrpe']['packages'] = case node['platform_family']
     %w{ nagios-nrpe-server nagios-plugins nagios-plugins-basic nagios-plugins-standard }
   when 'rhel' #needs epel btw if !aws
     %w{ nagios-plugins-nrpe nagios-plugins-all nagios-nrpe openssl nrpe}
+  else
+    %w{ }
 end
 
 #common in nrpe.cfg across all os
