@@ -11,7 +11,7 @@ base2_opt_dir = '/opt/base2'
 base2_opt_dir_extras = ["archive", "backups", "config", "bin", "scripts"]
 
 # Base optional directory
-directory "#{base2_opt_dir}" do
+directory base2_opt_dir do
   mode 00755
   owner 'root'
   group 'root'
@@ -29,9 +29,11 @@ base2_opt_dir_extras.each do |dir|
   end
 end
 
-cookbook_file '/opt/base2/bin/ec2-bootstrap' do
-  source 'opt/base2/bin/ec2-bootstrap'
-  owner 'root'
-  group 'root'
-  mode 00755
+['ec2-bootstrap', 'ec2-bootstrap.py'].each do | file |
+  cookbook_file "/opt/base2/bin/#{file}" do
+    source "opt/base2/bin/#{file}"
+    owner 'root'
+    group 'root'
+    mode 00755
+  end
 end

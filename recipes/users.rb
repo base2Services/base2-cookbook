@@ -10,7 +10,7 @@
 node['base2']['users'].each do |account, ssh_keys|
 
   log "Creating the '#{account}' user..."
-  user "#{account}" do
+  user account do
     shell '/bin/bash'
     home "/home/#{account}"
     supports :manage_home => true
