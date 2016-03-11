@@ -8,5 +8,6 @@ cookbook 'apt'
 cookbook 'resource-control'
 cookbook 'build-essential'
 cookbook 'docker', '~> 2.4.1'
+cookbook 'windows', '~> 1.39.2'
 
 metadata
