@@ -7,7 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
-log 'Running base2 Windows SOE'
+log 'Running base2 Windows SOE' do
   level :info
 end
 
