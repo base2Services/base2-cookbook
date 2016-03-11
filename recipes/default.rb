@@ -7,8 +7,15 @@
 # All rights reserved - Do Not Redistribute
 #
 
-include_recipe "base2::directories"
-include_recipe "base2::packages"
-include_recipe "base2::users"
-include_recipe "base2::environment"
-include_recipe "base2::nrpe"
+case node['platform_family']
+when 'windows'
+  include_recipe 'base2::windows'
+  include_recipe 'base2::windows_directories'
+  include_recipe 'base2::windows_users'
+else
+  include_recipe 'base2::directories'
+  include_recipe 'base2::packages'
+  include_recipe 'base2::users'
+  include_recipe 'base2::environment'
+  include_recipe 'base2::nrpe'
+end
