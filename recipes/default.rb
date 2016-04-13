@@ -7,7 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
-case node['platform']
+case node['platform_family']
 when 'windows'
   include_recipe 'base2::windows'
   include_recipe 'base2::windows_directories'
