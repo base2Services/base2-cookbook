@@ -16,3 +16,5 @@ default['base2']['docker']['images'] = []
 default['base2']['environment']['name'] = 'default'
 default['base2']['environment']['type'] = 'dev'
 default['base2']['role'] = 'app'
+
+default['base2']['codedeploy_region'] = 'us-west-2'
