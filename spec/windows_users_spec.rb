@@ -20,4 +20,14 @@ describe 'base2::windows_users' do
   it 'does not raise an exception' do
     expect { chef_run }.to_not raise_error
   end
+
+  it 'creates a windows user' do
+    chef_run.node.set['base2']['windows']['users'] = [
+      { username: 'username', password: 'N3wPassW0Rd', groups: ['Administrators']}
+    ]
+    chef_run.converge(described_recipe)
+    expect(chef_run).to create_windows_home('username').with(
+      password: 'N3wPassW0Rd'
+    )
+  end
 end
