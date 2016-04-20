@@ -17,3 +17,13 @@ default['base2']['users']['base2'] = [
   'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDxY+4vkoEZbrXAyX8q4aLv3q/kEM5mZu1eg/nmU7plM+1lP+JYLye8AaZTwt65t5MtqBvCMo/bVermXCWJq+/ArmHksJBR8RSjjvlP0/sYC8Cm/GH2l17pS+to5t4yKXLR5N8N9Na1GTsuk3izqPnSSfVIZrin040aV4qJb2VXhpXQHip7113DSFJtTtIPYi/unfylEjLtOPVARks/cx9HM8pSNwczWxH4vYHpKjz8f36JiOS6RjRXSfotWU0uf8N9+7swAJdH7IMubbOgqLUuYffTxc4UtCPeS3opxDY7H52vhvO02/1kt6TtHWgqFai9G2h7EIdtVzWMXy64oOd5 cdelcourt',
   'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC3YSLTe2TMsf1YTKzEpFrTy3wjlUB/829u8SiLG3cjnp6fYxFJWSjfJqK+0kQ2j45V8T76sDP6XdKnrRDMxxkWszRHf9askEkBNFFR5ilEyaIXsNPP7eLXruObAoCR3N2sIfQeWLP2S6ja18TWMFXty8dpSMjRXYAxhjqKSWenVSp+P8mJzsKvgkIWhKZcMjQW4b9tsfCsz9z/xh6MWvWsvtBg1WUJG2FBsXrBOqcwxw2psVMLlRK5lPHJQ0AREGbiZ2qvcxRwEv2uy1hVeFIFLm05R2jyXolSYwLbVVkREimRJuiwFf6XoDAVKL4mJ6UuBDOW9Bew0jVWduIm/vtGR4Gq2cd6iNfnmPuQe7Pj8rKsgHRAP0CNGfrMpEKrpalwQquMLjh26qBfisxuVQzkCyzNRVl00Iy5PO5Ga5KYKMzdgjA0MjGkLqiPLRq/CTlkO3nSGj3IZpjbfmICwrEU+8ZzOC/JScglrKv5uLYCQABizzSk3PkRPg+SX9ZvjLfjdtzg3Tzc+P1aDmVZfsl4xuCAUfcA164uhRvPtKrdcM1Ba7wsQjx1gPqdFIY1cm9jusXS8ahIdMByr/ulV8ruzl9ruE0xu8xbFb9dsHskLXf2g3+Jse2kozC0HncREFhn526nxuJWtlGmqveL6IqXrpxyEQjf8lVXQZkjCgUaWQ== rmanto'
 ]
+
+# this attribute is an array of hashes and is overriden in a wrapper cookbook e.g
+# node.override['base2']['windows']['users'] = [
+#   {
+#     username: 'base2'
+#     password: 'supersecret'
+#     groups: ['Administrators']
+#   }
+# ]
+default['base2']['windows']['users'] = []
