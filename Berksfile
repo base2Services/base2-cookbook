@@ -8,7 +8,7 @@ cookbook 'apt'
 cookbook 'resource-control'
 cookbook 'build-essential'
 cookbook 'docker', '~> 2.4.1'
-cookbook 'windows', '~> 1.39.2'
+cookbook 'windows', '~> 1.40.0'
 cookbook 'windows_home', '~> 1.0.0'
 
 metadata
