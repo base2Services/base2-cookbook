@@ -27,6 +27,13 @@ export DATA_VOLUME_ID=$DATA_VOLUME_ID
 export INSTANCE_ID=$INSTANCE_ID
 export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
 
+#create an environment in a dynamic way
+#if they don't exist
+#some cookbooks expect a chef env
+CHEF_ENV_DIR=/etc/chef/environments
+[[ -d $CHEF_ENV_DIR ]] || mkdir -p $CHEF_ENV_DIR
+[[ -f $CHEF_ENV_DIR/$EC2_TAG_ENVIRONMENT.json ]] || echo "{\"name\":\"$EC2_TAG_ENVIRONMENT\",\"chef_type\":\"environment\"}" > $CHEF_ENV_DIR/$EC2_TAG_ENVIRONMENT.json
+
 if [ -f /etc/profile.d/bootstrap_env.sh ]; then
   source /etc/profile.d/bootstrap_env.sh
 fi
@@ -54,11 +61,11 @@ EOT
 echo "Executing bootstrap for $EC2_TAG_ROLE for environment $EC2_TAG_ENVIRONMENT"
 
 CLI_OPTS=""
-if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT_TYPE}" ]]; then
+if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT_TYPE}.json" ]]; then
   CLI_OPTS="-E ${EC2_TAG_ENVIRONMENT_TYPE}"
 fi
 
-if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}" ]]; then
+if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}.json" ]]; then
   CLI_OPTS="-E ${EC2_TAG_ENVIRONMENT}"
 fi
 
