@@ -61,11 +61,11 @@ EOT
 echo "Executing bootstrap for $EC2_TAG_ROLE for environment $EC2_TAG_ENVIRONMENT"
 
 CLI_OPTS=""
-if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT_TYPE}" ]]; then
+if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT_TYPE}.json" ]]; then
   CLI_OPTS="-E ${EC2_TAG_ENVIRONMENT_TYPE}"
 fi
 
-if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}" ]]; then
+if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}.json" ]]; then
   CLI_OPTS="-E ${EC2_TAG_ENVIRONMENT}"
 fi
 
