@@ -68,7 +68,7 @@ $base2override["ec2"] = @{}
 $base2override["ec2"]["instance-id"] = $instanceId
 
 $overrideobject | Add-Member -type NoteProperty -name base2 -value $base2override -Force
-$overrideobject | ConvertTo-Json | Out-File $ChefOverride
+$overrideobject | ConvertTo-Json | Out-File -encoding ASCII $ChefOverride
 
 if($RuntimeCookbook) {
   $run_list = "recipe['$RuntimeCookbook::$role']"
