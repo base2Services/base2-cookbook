@@ -1,7 +1,9 @@
 Param(
   [string]$RuntimeCookbook,
   [string]$OverrideRunList,
-  [string]$ChefOverride = "C:\chef\override.json"
+  [string]$ChefOverride = "C:\chef\override.json",
+  [string]$NetworkInterfaceId,
+  [string[]]$VolumeIds
 )
 
 function Get-EC2InstanceTag {
@@ -64,6 +66,21 @@ Write-Output "ChefOverride: $ChefOverride"
 Write-Output "RuntimeCookbook: $RuntimeCookbook"
 Write-Output "Role: $role"
 Write-Output "Region: $Region"
+
+#Attach Network Interface
+if($NetworkInterfaceId) {
+  Write-Output "Attaching Network Interface $NetworkInterfaceId"
+  Add-EC2NetworkInterface -Region $Region -NetworkInterfaceId $NetworkInterfaceId -InstanceId $instanceId -DeviceIndex 1 -Force
+}
+
+#Attach EBS Volume
+if($VolumeIds) {
+  ForEach ( $volumeId in $VolumeIds ) {
+    $volume = $volumeId.Split(":")
+    Write-Output "Attaching EBS Volume $volume"
+    Add-EC2Volume -Region $Region -InstanceId $instanceId  -VolumeId $volume[0] -Device $volume[1] -Force
+  }
+}
 
 #Run Chef
 if($environment -and $role) {
