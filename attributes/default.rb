@@ -18,3 +18,4 @@ default['base2']['environment']['type'] = 'dev'
 default['base2']['role'] = 'app'
 
 default['base2']['codedeploy_region'] = 'us-west-2'
+default['base2']['ssm_agent'] = false
