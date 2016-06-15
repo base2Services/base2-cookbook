@@ -27,4 +27,19 @@ else
   service "codedeploy-agent" do
     action [:start, :enable]
   end
+
+  #install ssm-agent
+  remote_file '/usr/src/amazon-ssm-agent.rpm' do
+    source "https://amazon-ssm-#{node['base2']['codedeploy_region']}.s3.amazonaws.com/latest/linux_amd64/amazon-ssm-agent.rpm"
+    owner 'root'
+    group 'root'
+    notifies :run, "execute[install_ssm_agent]", :immediately
+    only_if node['base2']['ssm_agent']
+  end
+
+  execute 'install_ssm_agent' do
+    command 'yum install -y /usr/src/amazon-ssm-agent.rpm'
+    action :nothing
+    only_if node['base2']['ssm_agent']
+  end
 end
