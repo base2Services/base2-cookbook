@@ -1,5 +1,5 @@
 #!/bin/sh
-AZ=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone)
+AZ=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
 REGION=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s|rev|cut -c 2-|rev)
 INSTANCEID=$(curl http://169.254.169.254/latest/meta-data/instance-id -s)
 INFO=($(aws --region $REGION ec2 describe-instances --filters "Name=instance-id,Values=$INSTANCEID" --query "Reservations[].Instances[0].[LaunchTime,ImageId,Tags[?ends_with(Key,'Environment')].Value,Tags[?starts_with(Key,'Role')].Value]" --output text))
