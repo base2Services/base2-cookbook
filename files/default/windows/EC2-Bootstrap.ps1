@@ -43,6 +43,12 @@ function Invoke-Chef {
   cmd.exe /c "C:\opscode\chef\bin\chef-client $chef_args"
 }
 
+if (Test-Path $ChefOverride) {
+	$overrideobject = Get-Content -Raw -Path $ChefOverride | ConvertFrom-Json
+} else {
+	$overrideobject = @{}
+}
+
 # Get Instance Details
 $az = invoke-restmethod -uri http://169.254.169.254/latest/meta-data/placement/availability-zone
 $Region = $az.Substring(0,$az.Length-1)
@@ -50,6 +56,19 @@ $instanceId = invoke-restmethod -uri http://169.254.169.254/latest/meta-data/ins
 $environment = Get-EC2InstanceTag -Tag Environment -InstanceID $instanceId -Region $Region
 $environmenttype = Get-EC2InstanceTag -Tag EnvironmentType -InstanceID $instanceId -Region $Region
 $role = Get-EC2InstanceTag -Tag Role -InstanceID $instanceId -Region $Region
+
+$base2override = @{}
+$base2override["role"] = $role
+$base2override["region"] = $Region
+$base2override["az"] = $az
+$base2override["environment"] = @{}
+$base2override["environment"]["name"] = $environment
+$base2override["environment"]["type"] = $environmenttype
+$base2override["ec2"] = @{}
+$base2override["ec2"]["instance-id"] = $instanceId
+
+$overrideobject | Add-Member -type NoteProperty -name base2 -value $base2override -Force
+$overrideobject | ConvertTo-Json | Out-File -encoding ASCII $ChefOverride
 
 if($RuntimeCookbook) {
   $run_list = "recipe['$RuntimeCookbook::$role']"

@@ -21,6 +21,7 @@ function get_tag {
 export EC2_TAG_ENVIRONMENT="`get_tag 'Environment'`"
 export EC2_TAG_ENVIRONMENT_TYPE="`get_tag 'EnvironmentType'`"
 export EC2_TAG_ROLE="`get_tag 'Role'`"
+export EC2_TAG_NAME="`get_tag 'Name'`"
 export EC2_AZ="`curl http://169.254.169.254/2014-11-05/meta-data/placement/availability-zone -s | rev | cut -c1`"
 export AWS_REGION=$AWS_REGION
 export DATA_VOLUME_ID=$DATA_VOLUME_ID
@@ -52,7 +53,8 @@ cat <<EOT > /etc/chef/override.json
       "type": "$EC2_TAG_ENVIRONMENT_TYPE"
     },
     "ec2": {
-      "instance-id": "$INSTANCE_ID"
+      "instance-id": "$INSTANCE_ID",
+      "name": "$EC2_TAG_NAME"
     }
   }
 }
