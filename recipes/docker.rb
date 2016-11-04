@@ -14,9 +14,9 @@ end
 docker_installation_script 'default'
 
 docker_installation_binary 'default' do
-  version '1.9.1'
-  source 'https://get.docker.com/builds/Linux/x86_64/docker-1.9.1'
-  checksum '52286a92999f003e1129422e78be3e1049f963be1888afc3c9a99d5a9af04666'
+  version node['base2']['docker_version']
+  source "https://get.docker.com/builds/Linux/x86_64/docker-#{node['base2']['docker_version']}"
+  checksum node['base2']['docker_checksum']
   action :create
 end
 
