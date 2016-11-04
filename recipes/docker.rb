@@ -17,7 +17,7 @@ docker_installation_binary 'default' do
   version node['base2']['docker_version']
   checksum node['base2']['docker_checksum'] if node['base2']['docker_checksum']
   action :create
-  only_if node['base2']['docker_version'] != nil
+  not_if node['base2']['docker_version'].nil?
 end
 
 service 'docker' do
