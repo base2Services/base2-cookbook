@@ -23,4 +23,8 @@ describe 'base2::directories' do
     expect(chef_run).to create_cookbook_file('/opt/base2/bin/ec2-bootstrap')
   end
 
+  it 'should create the base2 find_asg_ip script' do
+    expect(chef_run).to create_cookbook_file('/opt/base2/bin/find_asg_ip')
+  end
+
 end
