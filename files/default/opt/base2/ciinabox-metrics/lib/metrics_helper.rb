@@ -24,7 +24,7 @@ def get_tag_value(ec2client, instance_id, tag_name)
   if tags
     tag = tags.find { |t| t['key'] == tag_name }
   end
-  return tag ? tag.value : '(no value)'
+  return tag ? tag.value : nil
 end
 
 
@@ -71,6 +71,9 @@ def process_metric(metric_configuration)
 
   instance_name = get_tag_value(ec2client, instance_id, 'Name')
 
+  if instance_name == nil
+    instance_name = '(no name)'
+  end
   metrics_value.each_line do |metric_line|
     metric_def = metric_line.split(':')
     default_dimension_val = nil
@@ -106,8 +109,11 @@ def process_metric(metric_configuration)
     # Metrics per Specific Tag
     if metric_configuration['dimensions']['tags']
       metric_configuration['dimensions']['tags'].each do |tag|
-        dimensions = [{name: "Per-#{tag}", value: get_tag_value(ec2client, instance_id, tag)}]
-        put_metrics(cw_client, dimensions.concat(default_dimension), metric_configuration, value)
+        metric_value = get_tag_value(ec2client, instance_id, tag)
+        if(metric_value != nil)
+          dimensions = [{name: "Per-#{tag}", value: }]
+          put_metrics(cw_client, dimensions.concat(default_dimension), metric_configuration, metric_value)
+        end
       end
     end
 

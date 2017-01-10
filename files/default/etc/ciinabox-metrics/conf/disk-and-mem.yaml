@@ -1,10 +1,9 @@
 default:
   dimensions:
-    asg: false
     availability_zone: false
     instance: true
     tags:
-      -
+      - 'aws:autoscaling:groupName'
 
 metrics:
 
