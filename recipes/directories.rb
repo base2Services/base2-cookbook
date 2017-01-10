@@ -9,6 +9,7 @@
 
 base2_opt_dir = '/opt/base2'
 base2_opt_dir_extras = ["archive", "backups", "config", "bin", "scripts"]
+base2_opt_local_dirs = ['/etc/ciinabox-metrics','/opt/base2/bin','/opt/base2/ciinabox-metrics']
 
 # Base optional directory
 directory base2_opt_dir do
@@ -29,11 +30,14 @@ base2_opt_dir_extras.each do |dir|
   end
 end
 
-['ec2-bootstrap', 'ec2-bootstrap.py', 'find_asg_ip'].each do | file |
-  cookbook_file "/opt/base2/bin/#{file}" do
-    source "opt/base2/bin/#{file}"
+base2_opt_local_dirs.each do |dir|
+  remote_directory dir do
+    # Remove starting slash '/'
+    source dir[1..-1]
+    # All files are owned by root by default, use permissions configuration to change
     owner 'root'
     group 'root'
-    mode 00755
+    mode '0600'
+    action :create
   end
 end

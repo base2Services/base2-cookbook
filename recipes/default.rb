@@ -14,8 +14,11 @@ when 'windows'
   include_recipe 'base2::windows_users'
 else
   include_recipe 'base2::directories'
+  include_recipe 'base2::files'
   include_recipe 'base2::packages'
   include_recipe 'base2::users'
+  include_recipe 'base2::permissions'
   include_recipe 'base2::environment'
   include_recipe 'base2::nrpe'
+  include_recipe 'base2::metrics'
 end

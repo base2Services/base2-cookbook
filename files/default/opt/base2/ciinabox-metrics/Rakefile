@@ -1,0 +1,99 @@
+require 'rake'
+require 'yaml'
+require 'erb'
+require_relative './lib/metrics_helper'
+require 'set'
+
+def get_metrics_configuration(ciinabox_metrics_root)
+  metrics_configuration = {}
+  # Read configuration
+  Dir.glob("#{ciinabox_metrics_root}/conf/*.yaml") do |yamlConf|
+    tmp_configuration = YAML.load_file(yamlConf)
+    metrics_configuration = metrics_configuration.merge(tmp_configuration)
+  end
+  metrics_configuration
+end
+
+namespace :ciinabox do
+
+  ciinabox_metrics_root = ENV['CIINABOX_METRICS_ROOT'] || '/etc/ciinabox-metrics'
+  ciinabox_metrics_runtime = ENV['CIINABOX_METRICS_RUNTIME'] || `echo $PWD|xargs echo -n`
+  ciinabox_metrics_user = ENV['CIINABOX_METRICS_USER'] || `echo $USER|xargs echo -n`
+
+  default_conf = {
+      'dimensions' => {'asg' => false, 'availability_zone' => false, 'instance' => true}
+  }
+
+  if not File.directory?(ciinabox_metrics_runtime)
+    STDERR.puts("Runtime directory #{ciinabox_metrics_runtime} not found. ")
+    exit -3
+  end
+
+  if not File.directory?(ciinabox_metrics_root)
+    STDERR.puts("Configuration directory #{ciinabox_metrics_root} not found. Use CIINABOX_METRICS_ROOT to set different directory ")
+    exit -3
+  end
+
+  ENV['CIINABOX_METRICS_SCRIPTS'] = ciinabox_metrics_root + '/scripts'
+
+  desc("Install metric cron jobs")
+  task :install_metrics_cron do
+    metrics_configuration = get_metrics_configuration(ciinabox_metrics_root)
+    schedule_template = IO.read('./config/schedule.template.erb')
+    template = ERB.new(schedule_template)
+    compiled_template = template.result(OpenStruct.new({'frequencies' =>
+                                                            metrics_configuration['metrics'].collect { |k,m| m['frequency'] }.to_set})
+                                            .instance_eval { binding })
+
+    IO.write('./config/schedule.rb', compiled_template)
+
+    cron_preview = `whenever`
+    system("whenever --update-crontab")
+
+    puts("Updated user #{ciinabox_metrics_user} crontab with following schedule\n")
+    puts("#{cron_preview}")
+  end
+
+  desc("Process single cron dsl expression")
+  task :process_metric_cron, [:cron_dsl] do |t, args|
+    metrics_configuration = get_metrics_configuration(ciinabox_metrics_root)
+
+    # Find all metrics matching given cron
+    all_cron_metrics = metrics_configuration['metrics'].find_all { |key, conf|
+      conf['frequency'] == args['cron_dsl']
+    }
+
+    # Build metric object and process metric for each of matched configurations
+    all_cron_metrics.each do |key, val|
+      metric_configuration = default_conf
+      if (metrics_configuration['default'])
+        metric_configuration = metric_configuration.merge(metrics_configuration['default'])
+      end
+      metric_configuration = metric_configuration.merge(val)
+      process_metric(metric_configuration)
+    end
+
+  end
+
+  desc("Process single metric and push to CW")
+  task :process_metric, [:metric_name] do |t, args|
+    metric_name = args['metric_name']
+    metrics_configuration = get_metrics_configuration(ciinabox_metrics_root)
+
+    # Process metric
+    metric_configuration = default_conf
+    if (metrics_configuration['default'])
+      metric_configuration = metric_configuration.merge(metrics_configuration['default'])
+    end
+
+    if (metrics_configuration['metrics'][metric_name] == nil)
+      STDERR.puts("ERROR: Configuration #{metric_name} not found in #{ciinabox_metrics_root}/conf/*.yml")
+      exit -1
+    end
+
+    metric_configuration = metric_configuration.merge(metrics_configuration['metrics'][metric_name])
+    process_metric(metric_configuration)
+
+  end
+
+end
