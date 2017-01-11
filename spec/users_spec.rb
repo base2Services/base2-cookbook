@@ -19,25 +19,34 @@ describe 'base2::users' do
     expect(chef_run).to create_user('base2')
   end
 
+  it 'creates the ciinabox-metrics user' do
+    expect(chef_run).to create_user('ciinabox-metrics')
+  end
+
   it 'creates the base2 user home directory' do
     expect(chef_run).to create_directory('/home/base2/.ssh')
-      .with_user('base2')
+                            .with_user('base2')
   end
 
   it 'creates the base2 users authorized_keys file' do
     expect(chef_run).to create_file('/home/base2/.ssh/authorized_keys')
-      .with_content(/\#generated and managed by chef/)
+                            .with_content(/\#generated and managed by chef/)
   end
 
   it 'creates the base2 users sudoers file' do
     expect(chef_run).to create_file('/etc/sudoers.d/base2')
-      .with_content(/base2 ALL = NOPASSWD: ALL/)
+                            .with_content(/base2 ALL = NOPASSWD: ALL/)
+  end
+
+  it 'creates the base2 users sudoers file' do
+    expect(chef_run).to_not create_file('/etc/sudoers.d/ciinabox-metrics')
   end
 
   it 'creates a custom user when add an custom node' do
-    chef_run.node.set['base2']['users']['custom'] = [
-      'ssh-rsa AAAAB3N'
-    ]
+    chef_run.node.set['base2']['users']['custom'] = {
+        'ssh_keys' => ['ssh-rsa AAAAB3N'],
+        'sudo' => false
+    }
     chef_run.converge(described_recipe)
     expect(chef_run).to create_user('base2')
     expect(chef_run).to create_user('custom')
