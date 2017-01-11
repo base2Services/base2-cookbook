@@ -110,8 +110,8 @@ def process_metric(metric_configuration)
     if metric_configuration['dimensions']['tags']
       metric_configuration['dimensions']['tags'].each do |tag|
         metric_value = get_tag_value(ec2client, instance_id, tag)
-        if(metric_value != nil)
-          dimensions = [{name: "Per-#{tag}", value: }]
+        if metric_value != nil
+          dimensions = [{name: "Per-#{tag}", value: metric_value}]
           put_metrics(cw_client, dimensions.concat(default_dimension), metric_configuration, metric_value)
         end
       end
