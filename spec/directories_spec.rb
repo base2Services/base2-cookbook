@@ -19,12 +19,13 @@ describe 'base2::directories' do
     expect(chef_run).to create_directory('/opt/base2/bin')
   end
 
-  it 'should create the base2 ec2-bootstrap script' do
-    expect(chef_run).to create_cookbook_file('/opt/base2/bin/ec2-bootstrap')
+  it 'should create the base2 bin directory with files' do
+    expect(chef_run).to create_remote_directory('/opt/base2/bin')
   end
 
-  it 'should create the base2 find_asg_ip script' do
-    expect(chef_run).to create_cookbook_file('/opt/base2/bin/find_asg_ip')
+  it 'should create the base2 ciinabox metrics directory' do
+    expect(chef_run).to create_remote_directory('/opt/base2/ciinabox-metrics')
+    expect(chef_run).to create_remote_directory('/etc/ciinabox-metrics')
   end
 
 end

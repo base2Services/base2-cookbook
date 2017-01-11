@@ -1,0 +1,101 @@
+default:
+  dimensions:
+    availability_zone: false
+    instance: true
+    asg: true
+    tags:
+      - Environment
+      - EnvironmentType
+      - Role
+
+metrics:
+
+  # Example of metric definition
+  # Copy / Paste and uncomment to create your own metrics
+
+
+#  my_metric:   # Metric key
+#    namespace: MyMetrics/MetricType
+#    name: MyMetric
+#    unit: Count   # Check http://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_MetricDatum.html for list of units
+#    frequency: every 1.minute # Take a look at https://github.com/javan/whenever for more examples
+#    default_dimension: DiskName  # If metric script returns multiple lines, one for each entity, dimension name for this entity is specified here, e.g. physical disk
+#    dimensions:
+#      asg: true  # If Instance is part of ASG, Per-ASG metric dimension will be published
+#      availability_zone: # Per-AZ metric dimension will be published with AZ name as dimensions value
+#      instance: # Per-Instance,InstanceName dimension will be be published with Amazon Instance id and Name tag for values
+#    tags:
+#      - EnvironmentName # Per-EnvironmentName dimension will be published with value of tag 'EnvironmentName' on instance itself
+#      - Role # Per-Role dimension will be published with value of tag 'Role' on instance itself
+#    script: "script_or_command arg1 arg2" # Path to script to pick up metric value and custom dimensions in format <default_metric_value>:<metric_value>:<custom_dimensions>
+
+
+  # Default Disk and Memory Metrics
+
+  # FreeMemory - Memory used by application plus system caches and buffers
+  free_memory:
+    namespace: Base2/EC2/Memory
+    name: FreeMemory
+    script: "memory-usage.sh Free"
+    unit: Kilobytes
+    frequency: every 1.minute
+
+  # ActualFreeMemory = FreeMemory - Buffers - Caches (Memory available for starting new programs)
+  actual_free_memory:
+      namespace: Base2/EC2/Memory
+      name: ActualFreeMemory
+      script: "memory-usage.sh ActualFree"
+      unit: Kilobytes
+      frequency: every 1.minute
+
+  # Used memory - Memory used by applications, OS caches and buffers (In Percentage)
+  used_memory:
+    namespace: Base2/EC2/Memory
+    name: MemoryUtilization
+    script: "memory-usage.sh UsedPercent"
+    unit: Percent
+    frequency: every 1.minute
+
+  # Used memory - Memory used by applications, OS caches and buffers (In Kilobytes)
+  used_memory_kb:
+      namespace: Base2/EC2/Memory
+      name: UsedMemory
+      script: "memory-usage.sh Used"
+      unit: Kilobytes
+      frequency: every 1.minute
+
+  # Free disk space per disk (temporary file system included) in percentage
+  disk_space_free_p:
+    namespace: Base2/EC2/Disk
+    name: DiskSpaceFreePercent
+    script: "disk-usage.sh free Percent"
+    unit: Percent
+    default_dimension: DiskName
+    frequency: every 1.minute
+
+  # Free disk space in Megabytes per disk (temporary file system included)
+  disk_space_free_mb:
+      namespace: Base2/EC2/Disk
+      name: DiskSpaceFree
+      script: "disk-usage.sh free Megabytes"
+      unit: Megabytes
+      default_dimension: DiskName
+      frequency: every 1.minute
+
+  # Used disk space per disk (temporary file system included) in percentage
+  disk_space_used_p:
+    namespace: Base2/EC2/Disk
+    name: DiskUtilization
+    script: "disk-usage.sh used Percent"
+    unit: Percent
+    default_dimension: DiskName
+    frequency: every 1.minute
+
+  # Free disk space in Megabytes per disk (temporary file system included)
+  disk_space_used_mb:
+      namespace: Base2/EC2/Disk
+      name: DiskSpaceUsed
+      script: "disk-usage.sh used Megabytes"
+      unit: Megabytes
+      default_dimension: DiskName
+      frequency: every 1.minute

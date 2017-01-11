@@ -7,7 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
-node['base2']['users'].each do |account, ssh_keys|
+node['base2']['users'].each do |account, configuration|
 
   log "Creating the '#{account}' user..."
   user account do
@@ -33,19 +33,21 @@ node['base2']['users'].each do |account, ssh_keys|
     action :create
   end
 
-  ssh_keys.each do |key|
+  configuration['ssh_keys'].each do |key|
     execute 'append_authorized_keys' do
       command "echo \"#{key}\" >> /home/#{account}/.ssh/authorized_keys"
       action :run
     end
   end
 
-  file "/etc/sudoers.d/#{account}" do
-    content "#{account} ALL = NOPASSWD: ALL"
-    owner 'root'
-    group 'root'
-    mode '0600'
-    action :create
+  if configuration['sudo']
+    file "/etc/sudoers.d/#{account}" do
+      content "#{account} ALL = NOPASSWD: ALL"
+      owner 'root'
+      group 'root'
+      mode '0600'
+      action :create
+    end
   end
 
 end

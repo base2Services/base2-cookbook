@@ -8,8 +8,10 @@
 #
 
 default['system']['timezone'] = "Australia/Melbourne"
-default['common']['packages'] = ['telnet', 'mc', 'screen', 'sysstat','traceroute']
+default['common']['packages'] = ['telnet', 'mc', 'screen', 'sysstat','traceroute','rubygem-io-console']
 default['common']['user'] = 'base2'
+
+default['base2']['permissions'] = {}
 
 default['base2']['docker']['images'] = []
 
@@ -21,3 +23,4 @@ default['base2']['codedeploy_region'] = 'us-west-2'
 default['base2']['ssm_agent'] = 'false'
 
 default['base2']['docker_version'] = '1.9.1'
+
