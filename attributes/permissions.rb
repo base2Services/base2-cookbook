@@ -15,6 +15,6 @@ default['base2']['permissions']['directory']['/opt/base2/ciinabox-metrics']['use
 default['base2']['permissions']['directory']['/opt/base2/ciinabox-metrics']['group'] = 'ciinabox-metrics'
 default['base2']['permissions']['directory']['/opt/base2/ciinabox-metrics']['mode'] = '755'
 
-default['base2']['permissions']['directory']['/etc/ciinabox-metrics']['user'] = 'root'
-default['base2']['permissions']['directory']['/etc/ciinabox-metrics']['group'] = 'root'
+default['base2']['permissions']['directory']['/etc/ciinabox-metrics']['user'] = 'ciinabox-metrics'
+default['base2']['permissions']['directory']['/etc/ciinabox-metrics']['group'] = 'ciinabox-metrics'
 default['base2']['permissions']['directory']['/etc/ciinabox-metrics']['mode'] = '755'

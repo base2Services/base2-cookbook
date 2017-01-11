@@ -11,3 +11,8 @@ every 1.hour do
   # Update rake tasks
   rake "ciinabox:install_metrics"
 end
+
+every 10.minutes do
+  # Update rake tasks
+  rake "ciinabox:write_instance_info"
+end

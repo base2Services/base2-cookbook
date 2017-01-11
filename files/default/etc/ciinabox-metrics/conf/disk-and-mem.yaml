@@ -2,8 +2,11 @@ default:
   dimensions:
     availability_zone: false
     instance: true
+    asg: true
     tags:
-      - 'aws:autoscaling:groupName'
+      - Environment
+      - EnvironmentType
+      - Role
 
 metrics:
 

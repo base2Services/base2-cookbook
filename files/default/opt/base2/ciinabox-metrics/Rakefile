@@ -3,6 +3,7 @@ require 'yaml'
 require 'erb'
 require_relative './lib/metrics_helper'
 require 'set'
+require 'json'
 
 def get_metrics_configuration(ciinabox_metrics_root)
   metrics_configuration = {}
@@ -19,6 +20,7 @@ namespace :ciinabox do
   ciinabox_metrics_root = ENV['CIINABOX_METRICS_ROOT'] || '/etc/ciinabox-metrics'
   ciinabox_metrics_runtime = ENV['CIINABOX_METRICS_RUNTIME'] || `echo $PWD|xargs echo -n`
   ciinabox_metrics_user = ENV['CIINABOX_METRICS_USER'] || `echo $USER|xargs echo -n`
+  instance_info_file_path = "#{ciinabox_metrics_root}/instance_info.json"
 
   default_conf = {
       'dimensions' => {'asg' => false, 'availability_zone' => false, 'instance' => true}
@@ -37,12 +39,12 @@ namespace :ciinabox do
   ENV['CIINABOX_METRICS_SCRIPTS'] = ciinabox_metrics_root + '/scripts'
 
   desc("Install metric cron jobs")
-  task :install_metrics_cron do
+  task :install_metrics_cron => [:save_instance_info] do
     metrics_configuration = get_metrics_configuration(ciinabox_metrics_root)
     schedule_template = IO.read('./config/schedule.template.erb')
     template = ERB.new(schedule_template)
     compiled_template = template.result(OpenStruct.new({'frequencies' =>
-                                                            metrics_configuration['metrics'].collect { |k,m| m['frequency'] }.to_set})
+                                                            metrics_configuration['metrics'].collect { |k, m| m['frequency'] }.to_set})
                                             .instance_eval { binding })
 
     IO.write('./config/schedule.rb', compiled_template)
@@ -70,7 +72,7 @@ namespace :ciinabox do
         metric_configuration = metric_configuration.merge(metrics_configuration['default'])
       end
       metric_configuration = metric_configuration.merge(val)
-      process_metric(metric_configuration)
+      process_metric(metric_configuration,JSON.parse(File.read(instance_info_file_path)))
     end
 
   end
@@ -92,8 +94,13 @@ namespace :ciinabox do
     end
 
     metric_configuration = metric_configuration.merge(metrics_configuration['metrics'][metric_name])
-    process_metric(metric_configuration)
+    process_metric(metric_configuration,JSON.parse(File.read(instance_info_file_path)))
 
+  end
+
+  desc("Read instance information and write to file")
+  task :save_instance_info do
+    write_instance_info(instance_info_file_path)
   end
 
 end
