@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+# wait_for_alb.rb
+
+# Waits for a ec2 instance to become healthy in a specified target group
+
+# Required parameters
+#   '-r', '--region' - specify a aws region i.e. -r ap-southeast-2
+#   '-t', '--target-groups' - specify one or more target group arns seperated by comma i.e. -t arn::1,arn::2
+#   '-i', '--instance-id' - specify the ec2 instance id i.e. -i i-0a5c9e3f2ff024ce9
+
+require 'aws-sdk'
+
+# Set default timeout to 5 minutes
+timeout = "3600"
+
+until ARGV.empty?
+  if ARGV.first.start_with?('-')
+    case ARGV.shift
+    when '-r', '--region'
+      region = ARGV.shift
+    when '-t', '--target-groups'
+      target_groups = ARGV.shift.split(",")
+    when '-i', '--instance-id'
+      instance_id = ARGV.shift
+    when '-T', '--timeout'
+      timeout = ARGV.shift
+    end
+  else
+    ARGV.shift
+  end
+end
+
+if !region || !target_groups || !instance_id
+  abort "ERROR: one or more parameters not supplied\nRequired `--instance-id`, `--target-groups`, `--region`"
+end
+
+client = Aws::ElasticLoadBalancingV2::Client.new(region: region)
+
+started_at = Time.now
+
+target_groups.each do |tg|
+
+  in_service = false
+
+  until in_service
+    resp = client.describe_target_health({
+      target_group_arn: tg,
+      targets: [{id: instance_id}]
+    })
+    tg.gsub(/(\/(.*?)\/)/) {puts "TG: #{$1.gsub('/','')}"}
+    state = resp.target_health_descriptions[0].target_health.state
+    if state == 'healthy'
+      puts "STATUS: #{state}"
+      in_service = true
+    elsif Time.now - started_at > timeout
+      puts "ERROR: failed to wait for instance to come into service..."
+      exit 1
+    else
+      puts "STATUS: #{state}"
+      sleep 5
+    end
+  end
+end

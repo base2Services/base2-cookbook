@@ -29,7 +29,7 @@ base2_opt_dir_extras.each do |dir|
   end
 end
 
-['ec2-bootstrap', 'ec2-bootstrap.py', 'find_asg_ip'].each do | file |
+['ec2-bootstrap', 'ec2-bootstrap.py', 'find_asg_ip', 'wait_for_alb', 'wait_for_elb'].each do | file |
   cookbook_file "/opt/base2/bin/#{file}" do
     source "opt/base2/bin/#{file}"
     owner 'root'
