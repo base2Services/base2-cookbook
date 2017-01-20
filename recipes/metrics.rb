@@ -25,14 +25,6 @@ ciinabox_metrics_env = {'PATH' => '/bin:/usr/bin:/usr/local/bin',
                         'USERNAME' => 'ciinabox-metrics'}
 
 ## Setup tasks
-# Install metric gems
-bash "install-metrics-gems" do
-  code "printenv > /home/ciinabox-metrics/env.txt"
-  environment ciinabox_metrics_env
-  cwd "/opt/base2/ciinabox-metrics"
-  user "ciinabox-metrics"
-  action :run
-end
 
 # Install metric gems
 bash "install-metrics-gems" do

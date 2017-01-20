@@ -23,7 +23,7 @@ def write_instance_info(json_file_path)
   # Read instance info
   region = `curl -s http://169.254.169.254/latest/dynamic/instance-identity/document|grep region|awk -F\\" '{print $4}'|xargs echo -n`
   az = `curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
-  instance_id = `curl -s http://instance-data/latest/meta-data/instance-id`
+  instance_id = `curl -s http://169.254.169.254/latest/meta-data/instance-id`
 
   Aws.config.update({region: region})
   ec2client = Aws::EC2::Client::new()
@@ -131,7 +131,7 @@ def process_metric(metric_configuration, instance_info)
     # Metrics per ASG
     if metric_configuration['dimensions']['asg']
       dimension_value = tags['aws:autoscaling:groupName']
-      if metrics_value != nil
+      if dimension_value != nil
         dimensions = [{name: 'Per-ASG', value: dimension_value}]
         put_metrics(cw_client, dimensions.concat(default_dimension), metric_configuration, value)
       end
