@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+
+# wait_for_elb.rb
+
+# Waits for a ec2 instance to become healthy in one ore more classic elastic load balancers
+# Queries all elastic load balancers in the region for the instance-id
+
+# Required parameters
+#   '-r', '--region' - specify a aws region i.e. -r ap-southeast-2
+#   '-i', '--instance-id' - specify the ec2 instance id i.e. -i i-0a5c9e3f2ff024ce9
+
+require 'aws-sdk'
+
+timeout = "3600" # Default timeout set to 5 minutes
+
+until ARGV.empty?
+  if ARGV.first.start_with?('-')
+    case ARGV.shift
+    when '-r', '--region'
+      region = ARGV.shift
+    when '-i', '--instance-id'
+      instance_id = ARGV.shift
+    when '-T', '--timeout'
+      timeout = ARGV.shift
+    end
+  else
+    ARGV.shift
+  end
+end
+
+if !region || !instance_id
+  abort "ERROR: one or more parameters not supplied\nRequired `--instance-id`, `--region`"
+end
+
+client = Aws::ElasticLoadBalancing::Client.new( region: region )
+
+elbs = []
+
+resp = client.describe_load_balancers()
+
+resp.load_balancer_descriptions.each do |load_balancer|
+  load_balancer.instances.each do |instance|
+    if instance.instance_id == instance_id
+      elbs << load_balancer.load_balancer_name
+    end
+  end
+end
+
+puts ""
+puts elbs
+
+elbs.each do |elb|
+  begin
+    started_at = Time.now
+    client.wait_until(:instance_in_service, load_balancer_name: elb, instances:[{ instance_id: instance_id }]) do |w|
+      w.max_attempts = nil
+      w.before_wait do |attempts, response|
+        puts "STATUS: #{response.instance_states[0].state}"
+        throw :failure if Time.now - started_at > timeout
+      end
+    end
+  rescue Aws::Waiters::Errors::WaiterFailed => e
+    abort "ERROR: #{e}"
+  end
+end
