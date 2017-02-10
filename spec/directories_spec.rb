@@ -27,4 +27,12 @@ describe 'base2::directories' do
     expect(chef_run).to create_cookbook_file('/opt/base2/bin/find_asg_ip')
   end
 
+  it 'should create the base2 wait_for_alb script' do
+    expect(chef_run).to create_cookbook_file('/opt/base2/bin/wait_for_alb')
+  end
+
+  it 'should create the base2 wait_for_elb script' do
+    expect(chef_run).to create_cookbook_file('/opt/base2/bin/wait_for_elb')
+  end
+
 end
