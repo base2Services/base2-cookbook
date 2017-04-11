@@ -2,7 +2,9 @@ source 'https://supermarket.chef.io'
 
 cookbook 'ntp', '~> 1.6.6'
 cookbook 'users', '~> 1.7.0'
-cookbook 'timezone-ii', '~> 0.2.0'
+#cookbook 'timezone-ii', '~> 0.2.0'
+#
+cookbook 'timezone-ii', github: 'base2Services/timezone-ii', branch: 'chef_13'
 cookbook 'yum'
 cookbook 'apt'
 cookbook 'resource-control'
