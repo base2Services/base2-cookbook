@@ -19,6 +19,10 @@ node['common']['packages'].each do |p|
   package p
 end
 
+node['common']['gems'].each do |p|
+  gem_package p
+end
+
 execute "Upgrade awscli" do
   command "pip install --upgrade awscli"
   only_if "curl -s http://instance-data.ec2.internal"
