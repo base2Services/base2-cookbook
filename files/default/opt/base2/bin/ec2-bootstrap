@@ -27,6 +27,7 @@ export AWS_REGION=$AWS_REGION
 export DATA_VOLUME_ID=$DATA_VOLUME_ID
 export INSTANCE_ID=$INSTANCE_ID
 export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
+export EC2_TAG_SSM_PARAMETERS="`get_tag` 'SSMParameters'"
 
 #create an environment in a dynamic way
 #if they don't exist
@@ -59,6 +60,11 @@ cat <<EOT > /etc/chef/override.json
   }
 }
 EOT
+
+if [[ $EC2_TAG_SSM_PARAMETERS -eq "true" ]]; then
+  echo "Executing get_ssm_parameters for environment $EC2_TAG_ENVIRONMENT"
+  ruby /opt/base2/bin/get_ssm_parameters -r $AWS_REGION -e $EC2_TAG_ENVIRONMENT
+fi
 
 echo "Executing bootstrap for $EC2_TAG_ROLE for environment $EC2_TAG_ENVIRONMENT"
 
