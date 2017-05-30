@@ -37,9 +37,7 @@ if !region || !environment
   abort "ERROR: one or more parameters not supplied\nRequired `--region`, `--environment`"
 end
 
-
-credentials = Aws::SharedCredentials.new(profile_name: 'conctr-dev')
-ssm = Aws::SSM::Client.new(region: region, credentials: credentials)
+ssm = Aws::SSM::Client.new(region: region)
 
 # Initalize parameter name array
 parameters = []
