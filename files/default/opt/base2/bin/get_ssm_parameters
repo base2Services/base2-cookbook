@@ -1,0 +1,81 @@
+#!/usr/bin/env ruby
+
+# get_secrets
+
+# Gets secrets from ssm parameters
+
+# Parameters
+#   '-r', '--region' - specify a aws region i.e. -r ap-southeast-2 [Required]
+#   '-e', '--environment' - specify environment name [Required]
+#   '-o', '--override-file' - specify the location of the override file [Optional]
+#   '-d', '--delimiter' - specify a custom delimiter in your parameters
+
+require 'aws-sdk'
+
+# Defaults
+override_file = "/etc/chef/override.json"
+parameter_delimiter = ".."
+
+until ARGV.empty?
+  if ARGV.first.start_with?('-')
+    case ARGV.shift
+    when '-r', '--region'
+      region = ARGV.shift
+    when '-e', '--environment-name'
+      environment = ARGV.shift
+    when '-o', '--override-file'
+      override_file = ARGV.shift
+    when '-d', '--delimiter'
+      parameter_delimiter = ARGV.shift
+    end
+  else
+    ARGV.shift
+  end
+end
+
+if !region || !environment
+  abort "ERROR: one or more parameters not supplied\nRequired `--region`, `--environment`"
+end
+
+ssm = Aws::SSM::Client.new(region: region)
+
+# Initalize parameter name array
+parameters = []
+
+# Get all default parameters
+default_params = ssm.describe_parameters({filters: [{ key: "Name", values: ["default"] }]})
+default_params.parameters.each { |param| parameters << param.name } if default_params.parameters.any?
+
+# Get all environment specific parameters
+environ_params = ssm.describe_parameters({filters: [{ key: "Name", values: [environment] }]})
+environ_params.parameters.each { |param| parameters << param.name } if environ_params.parameters.any?
+
+# Exit 1 if no parameters are found
+abort("ERROR: No secrets found in #{environment} environment or default parameter sets") unless parameters.any?
+
+secrets = ssm.get_parameters({
+  names: parameters,
+  with_decryption: true,
+})
+
+override = {}
+secrets.parameters.each do |s|
+  attributes = s.name.split(parameter_delimiter).drop(1)
+  i = 0;
+  attributes.reduce(override) do |hash,key|
+    hash[key] = if (i += 1) == attributes.length
+      s.value
+    else
+      hash[key] || {}
+    end
+  end
+end
+
+if File.file?(override_file)
+  puts "INFO: #{override_file} exits. Loading file..."
+  temp_override = JSON.parse(File.read(override_file))
+  override.merge!(temp_override)
+end
+
+puts "INFO: Writing secrets to #{override_file}"
+File.open(override_file,"w") { |f| f.write(JSON.pretty_generate(override))}

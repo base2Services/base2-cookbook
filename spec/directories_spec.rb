@@ -35,4 +35,9 @@ describe 'base2::directories' do
     expect(chef_run).to create_cookbook_file('/opt/base2/bin/wait_for_elb')
   end
 
+  it 'should create the base2 get_ssm_parameters script' do
+    expect(chef_run).to create_cookbook_file('/opt/base2/bin/get_ssm_parameters')
+  end
+
+
 end
