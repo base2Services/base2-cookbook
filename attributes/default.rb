@@ -9,7 +9,7 @@
 
 default['system']['timezone'] = "Australia/Melbourne"
 default['common']['packages'] = ['telnet', 'mc', 'screen', 'sysstat','traceroute']
-default['common']['gems'] = ['aws-sdk']
+default['common']['gems'] = ['aws-sdk@2.9.44']
 default['common']['user'] = 'base2'
 
 default['base2']['docker']['images'] = []
