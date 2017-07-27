@@ -20,7 +20,16 @@ node['common']['packages'].each do |p|
 end
 
 node['common']['gems'].each do |p|
-  gem_package p
+  package_name = p
+  package_version = nil
+  # support for both [gemname] and [gemname@version] spec
+  if p.include?('@')
+    package_name = p.split('@')[0]
+    package_version = p.split('@')[1]
+  end
+  gem_package package_name do
+    version package_version unless package_version.nil?
+  end
 end
 
 execute "Upgrade awscli" do
