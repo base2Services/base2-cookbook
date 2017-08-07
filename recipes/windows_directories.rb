@@ -30,3 +30,7 @@ end
 cookbook_file "#{base2_opt_dir}/bin/EC2-Bootstrap.ps1" do
   source "windows/EC2-Bootstrap.ps1"
 end
+
+cookbook_file "#{base2_opt_dir}/bin/get_ssm_parameters" do
+  source "opt/base2/bin/get_ssm_parameters"
+end

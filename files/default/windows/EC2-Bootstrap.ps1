@@ -56,6 +56,7 @@ $instanceId = invoke-restmethod -uri http://169.254.169.254/latest/meta-data/ins
 $environment = Get-EC2InstanceTag -Tag Environment -InstanceID $instanceId -Region $Region
 $environmenttype = Get-EC2InstanceTag -Tag EnvironmentType -InstanceID $instanceId -Region $Region
 $role = Get-EC2InstanceTag -Tag Role -InstanceID $instanceId -Region $Region
+$secrets = Get-EC2InstanceTag -Tag SSMParameters -InstanceID $instanceId -Region $Region
 
 $base2override = @{}
 $base2override["role"] = $role
@@ -69,6 +70,11 @@ $base2override["ec2"]["instance-id"] = $instanceId
 
 $overrideobject | Add-Member -type NoteProperty -name base2 -value $base2override -Force
 $overrideobject | ConvertTo-Json | Out-File -encoding ASCII $ChefOverride
+
+if($secrets -eq "true") {
+  Write-Output "Executing get_ssm_parameters for environment $environment"
+  cmd.exe /c "C:\opscode\chef\embedded\bin\ruby C:\base2\bin\get_ssm_parameters -r $Region -e $environment -o $ChefOverride"
+}
 
 if($RuntimeCookbook) {
   $run_list = "recipe['$RuntimeCookbook::$role']"
