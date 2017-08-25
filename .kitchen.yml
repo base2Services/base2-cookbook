@@ -1,0 +1,37 @@
+---
+driver:
+  name: dokken
+  chef_version: 12.18.31
+
+transport:
+  name: dokken
+
+provisioner:
+  name: dokken
+
+verifier:
+  name: inspec
+  sudo: true
+
+platforms:
+- name: amazonlinux-2016.09
+  driver:
+    image: base2/amazonlinux-mock-ec2:2016.09
+    privileged: true
+    pid_one_command: /sbin/init
+
+suites:
+  - name: default
+    run_list:
+      - recipe[base2::default]
+    attributes:
+  - name: compliance
+    run_list:
+      - recipe[base2::default]
+    attributes:
+      base2:
+        os-hardening: true
+    verifier:
+      inspec_tests:
+        - name: base2-compliance
+          git: https://github.com/base2Services/base2-compliance.git
