@@ -10,6 +10,7 @@ version          IO.read(File.join(File.dirname(__FILE__), 'VERSION'))
   supports os
 end
 
+depends 'os-hardening'
 depends 'yum-epel'
 depends 'ntp'
 depends 'users'
