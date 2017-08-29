@@ -57,7 +57,7 @@ echo $diskarray
 # Build the stripe from the diskarray
 if ($diskarray.count -gt 0)
 {
-	echo -FriendlyName "LUN-EPHEM" -StorageSubsystemFriendlyName "Windows Storage*" -PhysicalDisks $diskarray
+	New-StoragePool -FriendlyName "LUN-EPHEM" -StorageSubsystemFriendlyName "Windows Storage*" -PhysicalDisks $diskarray
 	New-VirtualDisk -FriendlyName "EphemDatastore" -StoragePoolFriendlyName "LUN-EPHEM" -UseMaximumSize -ResiliencySettingName Simple
 	$disknumber = (Get-VirtualDisk -FriendlyName "EphemDatastore" | Get-Disk).Number
 	Set-Disk -Number $disknumber -IsOffline $False
