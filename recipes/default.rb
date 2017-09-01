@@ -9,6 +9,7 @@
 
 case node['platform_family']
 when 'windows'
+  include_recipe 'windows-hardening' if node['base2']['os-hardening']
   include_recipe 'base2::windows'
   include_recipe 'base2::windows_directories'
   include_recipe 'base2::windows_users'

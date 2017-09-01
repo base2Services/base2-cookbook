@@ -32,6 +32,7 @@ describe 'base2::default' do
     it 'should include the windows but not include directories recipe' do
       expect(chef_run).to include_recipe('base2::windows')
       expect(chef_run).to_not include_recipe('base2::directories')
+      expect(chef_run).to_not include_recipe('base2::windows-hardening')
     end
   end
 
