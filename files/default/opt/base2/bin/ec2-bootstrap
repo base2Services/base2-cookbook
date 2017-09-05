@@ -78,4 +78,4 @@ if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT}.json" ]]; then
 fi
 
 cd /etc/chef
-/opt/chef/bin/chef-client --local-mode $CLI_OPTS -j /etc/chef/override.json -o "recipe[$EC2_TAG_ROLE]" --log_level error
+/opt/chef/bin/chef-client --local-mode $CLI_OPTS -j /etc/chef/override.json -o "recipe[$EC2_TAG_ROLE]" --log_level info
