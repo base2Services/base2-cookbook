@@ -12,7 +12,7 @@ function GetSCSI {
 
 	$deviceSuffix = $device.substring(3)      # remove xvd prefix
 
-  if ($deviceSuffix.length -eq 1) {
+	if ($deviceSuffix.length -eq 1) {
 		$scsi = (([int][char] $deviceSuffix[0]) - 97)
 	}
 	else {
@@ -44,12 +44,12 @@ foreach ($ephemeral in $ephemerals) {
 
 $diskarray = @()
 foreach ($scsiid in $scsiarray) {
-    $disk =  Get-WmiObject -Class Win32_DiskDrive | where-object {$_.SCSITargetId -eq $scsiid}
-    $physicaldisk = Get-PhysicalDisk | where-object {$_.SerialNumber -eq $disk.SerialNumber}
-    if ($physicaldisk -ne $null)
-    {
-        $diskarray += $physicaldisk
-    }
+	$disk =  Get-WmiObject -Class Win32_DiskDrive | where-object {$_.SCSITargetId -eq $scsiid}
+	$physicaldisk = Get-PhysicalDisk | where-object {$_.SerialNumber -eq $disk.SerialNumber}
+	if ($physicaldisk -ne $null)
+	{
+		$diskarray += $physicaldisk
+	}
 }
 
 echo $diskarray
