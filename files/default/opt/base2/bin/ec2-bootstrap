@@ -27,7 +27,7 @@ export AWS_REGION=$AWS_REGION
 export DATA_VOLUME_ID=$DATA_VOLUME_ID
 export INSTANCE_ID=$INSTANCE_ID
 export AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
-export EC2_TAG_SSM_PARAMETERS="`get_tag` 'SSMParameters'"
+export EC2_TAG_SSM_PARAMETERS="`get_tag 'SSMParameters'`"
 
 #create an environment in a dynamic way
 #if they don't exist

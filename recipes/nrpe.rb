@@ -32,6 +32,11 @@ template "#{node['base2']['nrpe']['conf_dir']}/nrpe.cfg" do
   notifies :restart, "service[#{node['base2']['nrpe']['service_name']}]"
 end
 
+execute 'touch_sysconfig_network' do
+  command 'touch /etc/sysconfig/network'
+  action :run
+end
+
 service node['base2']['nrpe']['service_name'] do
   action [:enable]
   supports :restart => true, :status => false
