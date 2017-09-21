@@ -12,6 +12,7 @@ when 'windows'
   include_recipe 'base2::windows'
   include_recipe 'base2::windows_directories'
   include_recipe 'base2::windows_users'
+  include_recipe 'base2::windows_security'
 else
   include_recipe 'os-hardening' if node['base2']['os-hardening']
   include_recipe 'base2::directories'
