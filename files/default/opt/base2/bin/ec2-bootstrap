@@ -61,7 +61,7 @@ cat <<EOT > /etc/chef/override.json
 }
 EOT
 
-if [[ $EC2_TAG_SSM_PARAMETERS -eq "true" ]]; then
+if [[ "${EC2_TAG_SSM_PARAMETERS}" == "true" ]]; then
   echo "Executing get_ssm_parameters for environment $EC2_TAG_ENVIRONMENT"
   ruby /opt/base2/bin/get_ssm_parameters -r $AWS_REGION -e $EC2_TAG_ENVIRONMENT
 fi
