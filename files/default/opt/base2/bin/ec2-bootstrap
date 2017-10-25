@@ -14,9 +14,21 @@ if [ ! "x$2" == x ]; then
 fi
 
 function get_tag {
-    tag="`aws ec2 describe-tags --region ${AWS_REGION} --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$1" --output=text | cut -f5`"
+    tag="`aws ec2 describe-tags --region ${AWS_REGION} --filters "Name=resource-id,Values=${INSTANCE_ID}" "Name=key,Values=$1" --output=text | cut -f5`"
     echo "$tag"
 }
+
+# Wait until tags are populated before getting values for override.json
+while true; do
+  TAGS=$(aws --region ${REGION} ec2 describe-tags --filters Name=resource-id,Values=${INSTANCEID} --query 'Tags[].Value' --output=text)
+  if [ ${#TAGS[@]} -eq 0 ]; then
+    echo "INFO: Tags not populated yet..."
+    sleep 1
+  else
+    echo "INFO: Tags are available"
+    break
+  fi
+done
 
 export EC2_TAG_ENVIRONMENT="`get_tag 'Environment'`"
 export EC2_TAG_ENVIRONMENT_TYPE="`get_tag 'EnvironmentType'`"
