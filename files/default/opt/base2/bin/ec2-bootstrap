@@ -14,9 +14,35 @@ if [ ! "x$2" == x ]; then
 fi
 
 function get_tag {
-    tag="`aws ec2 describe-tags --region ${AWS_REGION} --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=$1" --output=text | cut -f5`"
+    tag="`aws ec2 describe-tags --region ${AWS_REGION} --filters "Name=resource-id,Values=${INSTANCE_ID}" "Name=key,Values=$1" --output=text | cut -f5`"
     echo "$tag"
 }
+
+function log() {
+  LEVEL="${1^^}"
+  MESSAGE="$2"
+  DATESTAMP="`date +%r`"
+
+  echo "${DATESTAMP} [${LEVEL}] -- ${MESSAGE}"
+}
+
+RETRIES=0
+TIMEOUT=30
+while [ $RETRIES -lt $TIMEOUT ]; do
+  TAGS=($(aws --region ${REGION} ec2 describe-tags --filters Name=resource-id,Values=${INSTANCEID} --query 'Tags[].Value' --output=text))
+  if [ ${#TAGS[@]} -eq 0 ]; then
+    log "INFO" "Tags not populated yet..."
+    sleep 1
+  else
+    log "INFO" "Tags are available"
+    break
+  fi
+  ((RETRIES++))
+done
+
+if [ $RETRIES -eq $TIMEOUT ]; then
+  log 'ERROR' "Desribe tags returned nothing within the timeout of ${TIMEOUT} seconds"
+fi
 
 export EC2_TAG_ENVIRONMENT="`get_tag 'Environment'`"
 export EC2_TAG_ENVIRONMENT_TYPE="`get_tag 'EnvironmentType'`"
@@ -62,11 +88,11 @@ cat <<EOT > /etc/chef/override.json
 EOT
 
 if [[ "${EC2_TAG_SSM_PARAMETERS}" == "true" ]]; then
-  echo "Executing get_ssm_parameters for environment $EC2_TAG_ENVIRONMENT"
+  log 'INFO' "Executing get_ssm_parameters for environment $EC2_TAG_ENVIRONMENT"
   ruby /opt/base2/bin/get_ssm_parameters -r $AWS_REGION -e $EC2_TAG_ENVIRONMENT
 fi
 
-echo "Executing bootstrap for $EC2_TAG_ROLE for environment $EC2_TAG_ENVIRONMENT"
+log 'INFO' "Executing bootstrap for $EC2_TAG_ROLE for environment $EC2_TAG_ENVIRONMENT"
 
 CLI_OPTS=""
 if [[ -f "/etc/chef/environments/${EC2_TAG_ENVIRONMENT_TYPE}.json" ]]; then
