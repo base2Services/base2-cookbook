@@ -29,7 +29,7 @@ function log() {
 RETRIES=0
 TIMEOUT=30
 while [ $RETRIES -lt $TIMEOUT ]; do
-  TAGS=($(aws --region ${REGION} ec2 describe-tags --filters Name=resource-id,Values=${INSTANCEID} --query 'Tags[].Value' --output=text))
+  TAGS=($(aws --region ${AWS_REGION} ec2 describe-tags --filters Name=resource-id,Values=${INSTANCE_ID} --query 'Tags[].Value' --output=text))
   if [ ${#TAGS[@]} -eq 0 ]; then
     log "INFO" "Tags not populated yet..."
     sleep 1
