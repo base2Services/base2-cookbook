@@ -123,6 +123,25 @@ Call from userdata in cloudformation
 C:/base2/bin/Stripe-Windows-Ephemeral-Disks.ps1
 ```
 
+## attach_eni
+**Suported OS:** Linux, Windows (untested)
+
+##### Purpose
+Attaches an Elastic Network Interface to an EC2 instance based on a tag or ID.
+
+##### Usage
+Call from userdata in cloudformation.
+```
+/opt/base2/bin/attach_eni -r <AWS::Region> -n <ElasticNetworkInterfaceID>
+```
+
+#### Options
+`-r` `--region` - specify a aws region i.e. -r ap-southeast-2 <br />
+`-t` `--tag` - specify eni reservation tag [Required if -n or --network-interface not specified]<br />
+`-n` `--network-interface` - specify eni id [Required if -t or --tag not specified]<br />
+`-d` `--device-index` - specify device index for eni, defaults to 1 [Optional]<br />
+`-T` `--timeout` - specify timeout for script, defaults to 600 [Optional]
+
 # Author
 
 Author:: itsupport@base2services.com
