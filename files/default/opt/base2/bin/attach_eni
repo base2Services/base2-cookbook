@@ -1,0 +1,163 @@
+#!/usr/bin/env ruby
+
+# attach_eni
+
+# Attaches an ENI to the running instance
+
+# Parameters
+#   '-r', '--region' - specify a aws region i.e. -r ap-southeast-2 [Required]
+#   '-t', '--tag' - specify eni reservation tag [Required if -n or --network-interface not specified]
+#   '-n', '--network-interface' - specify eni id [Required if -t or --tag not specified]
+#   '-d', '--device-index' - specify device index for eni, defaults to 1 [Optional]
+#   '-T', '--timeout' - specify timeout for script, defaults to 600 [Optional]
+
+require 'aws-sdk'
+require 'net/http'
+
+## Defaults
+$timeout_seconds = 600 # seconds
+device_index = 1
+
+## Get instance ID from metadata service
+metadata_endpoint = 'http://169.254.169.254/latest/meta-data/'
+instance_id = Net::HTTP.get( URI.parse( metadata_endpoint + 'instance-id' ) )
+
+until ARGV.empty?
+  if ARGV.first.start_with?('-')
+    case ARGV.shift
+    when '-r', '--region'
+      region = ARGV.shift
+    when '-t', '--tag'
+      tag = ARGV.shift
+    when '-d', '--device-index'
+      device_index = ARGV.shift
+    when '-n', '--network-interface'
+      network_interface = ARGV.shift
+    when '-T', '--timeout'
+      $timeout_seconds = ARGV.shift.to_i
+    end
+  else
+    ARGV.shift
+  end
+end
+
+## Set script timeout time (epoch)
+$timeout_time = Time.now.to_i + $timeout_seconds
+
+if !region || (!network_interface && !tag)
+  abort "ERROR: one or more parameters not supplied\nRequired `--region`, `--tag` or `--network-interface`"
+end
+
+## Exit script if current time is later than the timeout time
+def timeout_exit
+  if Time.now.to_i > $timeout_time
+    abort "timed out after #{$timeout_seconds} seconds"
+  end
+end
+
+## Detach eni from the instance it is currently attached to, and wait until the eni is in a detached state
+def detach_eni (client,eni_interface_id,eni_instance_id,eni_attachment_id,network_interface,tag,eni_status='')
+  puts "detaching #{eni_interface_id} from #{eni_instance_id}"
+  resp = client.detach_network_interface({attachment_id: eni_attachment_id})
+  while eni_status != 'available' do
+    if !network_interface.nil?
+      eni_status = client.describe_network_interfaces({network_interface_ids: [network_interface]}).network_interfaces[0].status
+    else
+      eni_status = client.describe_network_interfaces({ filters: [ { name: "tag:reservation", values: [tag] } ] }).network_interfaces[0].status
+    end
+    puts "eni status: #{eni_status}"
+    timeout_exit
+    sleep 2
+  end
+end
+
+## Attach eni to the current instance, and wait until the eni is in a attaced state
+def attach_eni (client,eni_interface_id,instance_id,tag,device_index,network_interface,eni_status='')
+  puts "attaching #{eni_interface_id} to #{instance_id}"
+  resp = client.attach_network_interface({
+    device_index: device_index,
+    instance_id: instance_id,
+    network_interface_id: eni_interface_id,
+  })
+  while eni_status != 'in-use' do
+    if !network_interface.nil?
+      eni_status = client.describe_network_interfaces({network_interface_ids: [network_interface]}).network_interfaces[0].status
+    else
+      eni_status = client.describe_network_interfaces({ filters: [ { name: "tag:reservation", values: [tag] } ] }).network_interfaces[0].status
+    end
+    puts "eni status: #{eni_status}"
+    timeout_exit
+    sleep 2
+  end
+end
+
+## Get current status of eni
+begin
+client = Aws::EC2::Client.new(region: region)
+  if !network_interface.nil?
+    eni_resp = client.describe_network_interfaces({network_interface_ids: [network_interface]})
+  else
+    eni_resp = client.describe_network_interfaces({ filters: [ { name: "tag:reservation", values: [tag] } ] })
+  end
+rescue Aws::EC2::Errors::ServiceError => e
+  puts "ERROR: #{e}"
+end
+
+## If eni exists, store attributes and display them
+if defined?(eni_resp.network_interfaces) && !eni_resp.network_interfaces[0].nil?
+  eni_status = eni_resp.network_interfaces[0].status
+  eni_interface_id = eni_resp.network_interfaces[0].network_interface_id
+  if eni_status == 'in-use'
+    eni_attachment_id = eni_resp.network_interfaces[0].attachment.attachment_id
+    eni_instance_id = eni_resp.network_interfaces[0].attachment.instance_id
+  end
+
+  puts "------------------------------------------------"
+  puts "attach_eni"
+  puts "------------------------------------------------"
+  puts "running instance:            #{instance_id}"
+  puts "eni id:                      #{eni_interface_id}"
+  puts "eni status:                  #{eni_status}"
+  puts "attachment id:               #{eni_attachment_id}"
+  puts "attached instance:           #{eni_instance_id}"
+  puts "------------------------------------------------"
+
+  ## If the eni is attached to another instance, detach it and attach it to this instance
+  ## If the eni isn't attached to an instance, attach it to this instance
+  if eni_status != 'available'
+    if instance_id != eni_instance_id
+      detach_eni(client,eni_interface_id,eni_instance_id,eni_attachment_id,network_interface,tag)
+      attach_eni(client,eni_interface_id,instance_id,tag,device_index,network_interface)
+    end
+  else
+    attach_eni(client,eni_interface_id,instance_id,tag,device_index,network_interface)
+  end
+
+  ## Get updated status of eni (after detachment/attachment)
+  begin
+    if !network_interface.nil?
+      eni_resp = client.describe_network_interfaces({network_interface_ids: [network_interface]})
+    else
+      eni_resp = client.describe_network_interfaces({ filters: [ { name: "tag:reservation", values: [tag] } ] })
+    end
+  rescue Aws::EC2::Errors::ServiceError => e
+    puts "ERROR: #{e}"
+  end
+
+  eni_status = eni_resp.network_interfaces[0].status
+  if eni_status == 'in-use'
+    eni_instance_id = eni_resp.network_interfaces[0].attachment.instance_id
+  else
+    eni_instance_id = 'no instance'
+  end
+
+  puts "eni #{eni_interface_id} attached to #{eni_instance_id}"
+  puts "------------------------------------------------"
+else
+  ## Display error if eni could not be found
+  if !network_interface.nil?
+    abort "ERROR: eni with interface id '#{network_interface}' not found"
+  else
+    abort "ERROR: eni with reservation tag '#{tag}' not found"
+  end
+end
