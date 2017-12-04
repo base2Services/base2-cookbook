@@ -15,6 +15,21 @@ elsif node['platform_family'] == 'debian'
   include_recipe 'apt'
 end
 
+# Install and purge Amazon specific packages
+if platform_family('amazon')
+
+  node['common']['amzn']['install'].each do |p|
+    yum_package p
+  end
+
+  node['common']['yum']['purge'].each do |p|
+    yum_package p do
+      action :purge
+    end
+  end
+
+end
+
 node['common']['packages'].each do |p|
   package p
 end
