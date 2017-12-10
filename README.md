@@ -142,6 +142,26 @@ Call from userdata in cloudformation.
 `-d` `--device-index` - specify device index for eni, defaults to 1 [Optional]<br />
 `-T` `--timeout` - specify timeout for script, defaults to 600 [Optional]
 
+
+## attach_ebs
+**Suported OS:** Linux, Windows (untested)
+
+##### Purpose
+Attaches an Elastic block Store to an EC2 instance based on a tag or volume.
+
+##### Usage
+Call from userdata in cloudformation.
+```
+/opt/base2/bin/attach_ebs -r <AWS::Region> -t <tag>
+```
+
+#### Options
+`-r` `--region` - specify a aws region i.e. -r ap-southeast-2 <br />
+`-t` `--tag` - specify eni reservation tag [Required if -v or --volume not specified]<br />
+`-v` `--volume` - specify volume [Required if -t or --tag not specified]<br />
+`-d` `--device` - specify volume device type, defaults to /dev/xvdb [Optional]<br />
+`-T` `--timeout` - specify timeout for script, defaults to 600 [Optional]
+
 # Author
 
 Author:: itsupport@base2services.com

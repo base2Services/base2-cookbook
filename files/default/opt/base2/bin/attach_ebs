@@ -1,0 +1,162 @@
+#!/usr/bin/env ruby
+
+# attach_ebs
+
+# Attaches an EBS to the running instance
+
+# Parameters
+#   '-r', '--region' - specify a aws region i.e. -r ap-southeast-2 [Required]
+#   '-t', '--tag' - specify ebs reservation tag [Required if -v or --volume not specified]
+#   '-v', '--volume' - specify ebs id [Required if -t or --tag not specified]
+#   '-d', '--device' - specify device for ebs
+#   '-T', '--timeout' - specify timeout for script [Optional]
+
+require 'aws-sdk'
+require 'net/http'
+
+## Defaults
+$timeout_seconds = 600 # seconds
+device = '/dev/xvdb'
+
+## Get instance ID from metadata service
+metadata_endpoint = 'http://169.254.169.254/latest/meta-data/'
+instance_id = Net::HTTP.get( URI.parse( metadata_endpoint + 'instance-id' ) )
+
+until ARGV.empty?
+  if ARGV.first.start_with?('-')
+    case ARGV.shift
+    when '-r', '--region'
+      region = ARGV.shift
+    when '-t', '--tag'
+      tag = ARGV.shift
+    when '-d', '--device'
+      device = ARGV.shift
+    when '-v', '--volume'
+      volume = ARGV.shift
+    when '-T', '--timeout'
+      $timeout_seconds = ARGV.shift.to_i
+    end
+  else
+    ARGV.shift
+  end
+end
+
+
+## Set script timeout time (epoch)
+$timeout_time = Time.now.to_i + $timeout_seconds
+
+if !region || (!volume && !tag)
+  abort "ERROR: one or more parameters not supplied\nRequired `--region`, `--tag` or `--volume`"
+end
+
+## Exit script if current time is later than the timeout time
+def timeout_exit
+  if Time.now.to_i > $timeout_time
+    abort "timed out after #{$timeout_seconds} seconds"
+  end
+end
+
+## Detach ebs from the instance it is currently attached to, and wait until the ebs is in a detached state
+def detach_ebs (client,ebs_volume_id,ebs_instance_id,volume,tag,ebs_status='')
+  puts "detaching #{ebs_volume_id} from #{ebs_instance_id}"
+  resp = client.detach_volume({volume_id: ebs_volume_id})
+  while ebs_status != 'available' do
+    if !volume.nil?
+      ebs_status = client.describe_volumes({volume_ids: [volume]}).volumes[0].state
+    else
+      ebs_status = client.describe_volumes({ filters: [ { name: "tag:reservation", values: [tag] } ] }).volumes[0].state
+    end
+    puts "ebs status: #{ebs_status}"
+    timeout_exit
+    sleep 2
+  end
+end
+
+## Attach ebs to the current instance, and wait until the ebs is in a attaced state
+def attach_ebs (client,ebs_volume_id,instance_id,tag,device,volume,ebs_status='')
+  puts "attaching #{ebs_volume_id} to #{instance_id}"
+  resp = client.attach_volume({
+    device: device,
+    instance_id: instance_id,
+    volume_id: ebs_volume_id
+  })
+  while ebs_status != 'in-use' do
+    if !volume.nil?
+      ebs_status = client.describe_volumes({volume_ids: [volume]}).volumes[0].state
+    else
+      ebs_status = client.describe_volumes({ filters: [ { name: "tag:reservation", values: [tag] } ] }).volumes[0].state
+    end
+    puts "ebs status: #{ebs_status}"
+    timeout_exit
+    sleep 2
+  end
+end
+
+## Get current status of ebs volumes
+begin
+client = Aws::EC2::Client.new(region: region)
+  if !volume.nil?
+    ebs_resp = client.describe_volumes({volume_ids: [volume]})
+  else
+    ebs_resp = client.describe_volumes({ filters: [ { name: "tag:reservation", values: [tag] } ] })
+  end
+rescue Aws::EC2::Errors::ServiceError => e
+  puts "ERROR: #{e}"
+end
+
+## If ebs exists, store attributes and deplay them
+if defined?(ebs_resp.volumes) && !ebs_resp.volumes[0].nil?
+  ebs_status = ebs_resp.volumes[0].state
+  ebs_volume_id = ebs_resp.volumes[0].volume_id
+  if ebs_status == 'in-use'
+    ebs_instance_id = ebs_resp.volumes[0].attachments[0].instance_id
+  end
+
+  puts "------------------------------------------------"
+  puts "attach_ebs"
+  puts "------------------------------------------------"
+  puts "running instance:            #{instance_id}"
+  puts "ebs id:                      #{ebs_volume_id}"
+  puts "ebs status:                  #{ebs_status}"
+  puts "attached instance:           #{ebs_instance_id}"
+  puts "------------------------------------------------"
+
+  ## If the ebs is attached to another instance, detach it and attach it to this instance
+  ## If the ebs isn't attached to an instance, attach it to this instance
+  if ebs_status != 'available'
+    if instance_id != ebs_instance_id
+      detach_ebs(client,ebs_volume_id,ebs_instance_id,volume,tag)
+      attach_ebs(client,ebs_volume_id,instance_id,tag,device,volume)
+    end
+  else
+    attach_ebs(client,ebs_volume_id,instance_id,tag,device,volume)
+  end
+
+  ## Get updated status of ebs (after detachment/attachment)
+  begin
+    if !volume.nil?
+      ebs_resp = client.describe_volumes({volume_ids: [volume]})
+    else
+      ebs_resp = client.describe_volumes({ filters: [ { name: "tag:reservation", values: [tag] } ] })
+    end
+  rescue Aws::EC2::Errors::ServiceError => e
+    puts "ERROR: #{e}"
+  end
+
+  ebs_status = ebs_resp.volumes[0].state
+  if ebs_status == 'in-use'
+    ebs_instance_id = ebs_resp.volumes[0].attachments[0].instance_id
+  else
+    ebs_instance_id = 'no instance'
+  end
+
+  puts "ebs #{ebs_volume_id} attached to #{ebs_instance_id}"
+  puts "------------------------------------------------"
+else
+  ## Display error if  ebs could not be found
+  if !volume.nil?
+    abort "ERROR: ebs with volume id '#{volume}' not found"
+  else
+    abort "ERROR: ebs with reservation tag '#{tag}' not found"
+  end
+end
