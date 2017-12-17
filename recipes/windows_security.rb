@@ -10,5 +10,5 @@
 #Disable SMB 1.0/CIFS File Sharing Support for security purposes
 windows_feature 'FS-SMB1' do
   action :remove
-   provider :windows_feature_powershell
- end
+  provider :windows_feature_powershell
+end
