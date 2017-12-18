@@ -34,6 +34,6 @@ end
 
 execute "Upgrade awscli" do
   command "pip install --upgrade awscli"
-  only_if "curl -s http://instance-data.ec2.internal"
-  only_if "which pip"
+  only_if {shell_out("curl -s http://instance-data.ec2.internal").stdout.empty?}
+  only_if {shell_out("which pip").stdout.empty?}
 end

@@ -1,0 +1,18 @@
+<%  frequencies.each do |frequency| %>
+
+    <%=frequency%> do
+    # Install <%= frequency %> cron
+    rake "ciinabox:process_metric_cron[\"<%=frequency%>\"]"
+    end
+
+<% end %>
+
+every 1.hour do
+# Update rake tasks
+rake "ciinabox:install_metrics_cron"
+end
+
+every 1.minute do
+# Read instance metadata
+rake "ciinabox:save_instance_info"
+end

@@ -12,12 +12,10 @@ end
 
 depends 'os-hardening'
 depends 'yum-epel'
-depends 'ntp'
 depends 'users'
-depends 'timezone-ii'
 depends 'apt'
 depends 'yum'
 depends 'resource-control'
 depends 'docker'
-depends 'windows', '< 3.0.0'
+depends 'windows'
 depends 'windows_home'

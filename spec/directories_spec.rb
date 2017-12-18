@@ -39,5 +39,12 @@ describe 'base2::directories' do
     expect(chef_run).to create_cookbook_file('/opt/base2/bin/get_ssm_parameters')
   end
 
+  it 'should create the base2 attach_ebs script' do
+    expect(chef_run).to create_cookbook_file('/opt/base2/bin/attach_ebs')
+  end
+
+  it 'should create the base2 attach_eni script' do
+    expect(chef_run).to create_cookbook_file('/opt/base2/bin/attach_eni')
+  end
 
 end
