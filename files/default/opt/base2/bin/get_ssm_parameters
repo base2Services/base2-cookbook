@@ -16,6 +16,14 @@ require 'aws-sdk'
 override_file = "/etc/chef/override.json"
 parameter_delimiter = ".."
 
+class ::Hash
+  def deep_merge(second)
+    merger = proc {|key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : Array === v1 && Array === v2 ? v1 | v2 : [:undefined, nil, :nil].include?(v2) ? v1 : v2}
+    self.merge(second.to_h, &merger)
+  end
+end
+
+
 until ARGV.empty?
   if ARGV.first.start_with?('-')
     case ARGV.shift
@@ -42,24 +50,32 @@ ssm = Aws::SSM::Client.new(region: region)
 # Initalize parameter name array
 parameters = []
 
+#describe_parameters({filters: [{ key: "Name", values: ["default"] }]},next_token)
+def get_params(client,params, filter, next_token=nil)
+  filters = [{ key: "Name", values: [filter] }]
+  resp = client.describe_parameters({filters: filters, max_results: 10, next_token: next_token})
+  resp.parameters.each { |param| params << param.name }
+  # loop over params and add to array
+  next_token = resp.next_token
+  if !next_token.nil?
+    get_params(client,params, filter, next_token)
+  end
+  return params
+end
 # Get all default parameters
-default_params = ssm.describe_parameters({filters: [{ key: "Name", values: ["default"] }]})
-default_params.parameters.each { |param| parameters << param.name } if default_params.parameters.any?
-
-# Get all environment specific parameters
-environ_params = ssm.describe_parameters({filters: [{ key: "Name", values: [environment] }]})
-environ_params.parameters.each { |param| parameters << param.name } if environ_params.parameters.any?
+parameters = get_params(ssm, parameters, "default")
+parameters = get_params(ssm, parameters, environment)
 
 # Exit 1 if no parameters are found
 abort("ERROR: No secrets found in #{environment} environment or default parameter sets") unless parameters.any?
 
-secrets = ssm.get_parameters({
-  names: parameters,
-  with_decryption: true,
-})
-
+secrets = []
+parameters.each_slice(10) do |params|
+	secrets << ssm.get_parameters({names: params,with_decryption: true,}).parameters
+end
 override = {}
-secrets.parameters.each do |s|
+
+secrets.flatten(1).each do |s|
   attributes = s.name.split(parameter_delimiter).drop(1)
   i = 0;
   attributes.reduce(override) do |hash,key|
@@ -74,7 +90,7 @@ end
 if File.file?(override_file)
   puts "INFO: #{override_file} exits. Loading file..."
   temp_override = JSON.parse(File.read(override_file))
-  override.merge!(temp_override)
+  override = override.deep_merge(temp_override)
 end
 
 puts "INFO: Writing secrets to #{override_file}"
