@@ -3,7 +3,9 @@ Param(
   [string]$OverrideRunList,
   [string]$ChefOverride = "C:\chef\override.json",
   [string]$NetworkInterfaceId,
-  [string[]]$VolumeIds
+  [string[]]$VolumeIds,
+  [string]$ChefPath = "C:\opscode\chef\bin\chef-client",
+  [string]$RubyPath = "C:\opscode\chef\embedded\bin\ruby"
 )
 
 function Get-EC2InstanceTag {
@@ -40,7 +42,7 @@ function Invoke-Chef {
   }
 
   Write-Output "running chef-client $chef_args"
-  cmd.exe /c "C:\opscode\chef\bin\chef-client $chef_args"
+  cmd.exe /c "$ChefPath $chef_args"
 }
 
 if (Test-Path $ChefOverride) {
@@ -73,7 +75,7 @@ $overrideobject | ConvertTo-Json | Out-File -encoding ASCII $ChefOverride
 
 if($secrets -eq "true") {
   Write-Output "Executing get_ssm_parameters for environment $environment"
-  cmd.exe /c "C:\opscode\chef\embedded\bin\ruby C:\base2\bin\get_ssm_parameters -r $Region -e $environment -o $ChefOverride"
+  cmd.exe /c "$RubyPath C:\base2\bin\get_ssm_parameters -r $Region -e $environment -o $ChefOverride"
 }
 
 if($RuntimeCookbook) {
